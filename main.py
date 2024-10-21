@@ -7,6 +7,7 @@ from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.textinput import TextInput
+from kivy.uix.camera import Camera
 
 # Path for JSON data storage
 JSON_FILE = 'inventory_data.json'
@@ -19,7 +20,16 @@ class InventoryApp(App):
         self.current_location = None
         self.current_shelf = None
         self.current_nested_shelf = None
+        self.popup = None
         self.popup_stack = []  # Keep track of open popups
+        self.order_search_input = None
+        self.scan_button = None
+        self.camera_layout = None
+        self.camera = None
+        self.scanning_label = None
+        self.camera_popup = None
+        self.new_location_input = None
+        self.new_shelf_input = None
 
     def build(self):
         # Main layout with the two buttons
@@ -110,19 +120,23 @@ class InventoryApp(App):
         self.popup.open()
 
     def open_find_order_page(self, instance):
-        # Create the layout for finding an order (for now it can be a simple placeholder)
+        # Create the layout for finding an order
         layout = BoxLayout(orientation='vertical', padding=10)
         layout.add_widget(Label(text="Find Order"))
 
-        # Placeholder TextInput for order search (if needed in the future)
+        # Placeholder TextInput for manual order search
         self.order_search_input = TextInput(hint_text="Enter Order ID", size_hint=(1, 0.2))
         layout.add_widget(self.order_search_input)
 
-        # Button to search for the order
+        # Button to search for the order using manual entry or scanned barcode
         search_button = Button(text="Search Order", on_press=self.search_order)
         layout.add_widget(search_button)
 
-        # Close button
+        # Button to manually enter order ID or scan barcode
+        self.scan_button = Button(text="Start Scanning", on_press=self.start_scanning)
+        layout.add_widget(self.scan_button)
+
+        # Close button to exit popup
         close_button = Button(text="Close", on_press=self.close_all_popups)
         layout.add_widget(close_button)
 
@@ -131,13 +145,51 @@ class InventoryApp(App):
         self.popup_stack.append(self.popup)
         self.popup.open()
 
+    def start_scanning(self, instance):
+        # Print debug statement
+        print(f"Now scanning for items")
+
+        # Close the current popup (if needed)
+        if hasattr(self, 'popup') and self.popup:
+            self.popup.dismiss()
+
+        # Start the camera to scan barcodes
+        self.camera_layout = BoxLayout(orientation='vertical')
+
+        # Create camera widget (adjust size as needed)
+        self.camera = Camera(play=True, resolution=(640, 480), size_hint=(1, 1))
+        self.camera_layout.add_widget(self.camera)
+
+        # Label to display scanning status
+        self.scanning_label = Label(text="Now scanning...", size_hint=(1, 0.2))
+        self.camera_layout.add_widget(self.scanning_label)
+
+        # Close button for the camera feed
+        close_button = Button(text="Close", on_press=self.close_camera_popup, size_hint=(0.2, 0.2))
+        self.camera_layout.add_widget(close_button)
+
+        # Add the layout to the popup
+        self.camera_popup = Popup(title="Scanning for Order", content=self.camera_layout, size_hint=(1, 0.8))
+        self.camera_popup.open()
+
+        # Setup scanner functionality (if needed)
+        self.setup_scanner()
+
+    def setup_scanner(self):
+        # This will be a placeholder method for now; you can use the barcode scanner library of your choice
+        # to handle the camera feed and extract the barcode data when it's scanned
+        pass
+
     def search_order(self, instance):
-        # Placeholder function to handle order searching logic
+        # Logic to search for the order, whether from manual entry or scanned barcode
         order_id = self.order_search_input.text.strip()
+
         if order_id:
             print(f"Searching for order: {order_id}")
+            # Implement search logic here (e.g., search in JSON file)
         else:
-            print("Order ID cannot be empty.")
+            print("No order ID entered.")
+            # Provide feedback if needed
 
     def create_location_popup(self, instance):
         layout = BoxLayout(orientation='vertical')
@@ -205,9 +257,7 @@ class InventoryApp(App):
             i += 1
         return f"{self.current_shelf}{i}"
 
-    def start_scanning(self, nested_shelf_name):
-        self.current_nested_shelf = nested_shelf_name
-        print(f"Now scanning items on shelf {nested_shelf_name}")
+
 
     def confirm_location_deletion(self, instance):
         layout = BoxLayout(orientation='vertical', padding=10)
@@ -249,6 +299,7 @@ class InventoryApp(App):
         with open(JSON_FILE, 'w') as f:
             json.dump(self.data, f, indent=4)
 
+
     def load_json(self):
         if os.path.exists(JSON_FILE):
             with open(JSON_FILE, 'r') as f:
@@ -262,7 +313,10 @@ class InventoryApp(App):
             popup.dismiss()
         self.popup_stack.clear()
 
+    def close_camera_popup(self, instance):
+        # Close the camera popup
+        if hasattr(self, 'camera_popup') and self.camera_popup:
+            self.camera_popup.dismiss()
 
 if __name__ == '__main__':
     InventoryApp().run()
-
