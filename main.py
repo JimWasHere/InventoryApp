@@ -8,6 +8,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.textinput import TextInput
 from kivy.uix.camera import Camera
+from pyzbar.pyzbar import decode
 
 # Path for JSON data storage
 JSON_FILE = 'inventory_data.json'
