@@ -8,7 +8,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.textinput import TextInput
 from kivy.uix.camera import Camera
-from pyzbar.pyzbar import decode
+from scanner import BarcodeScannerApp
 
 # Path for JSON data storage
 JSON_FILE = 'inventory_data.json'
@@ -147,7 +147,7 @@ class InventoryApp(App):
         self.popup.open()
 
     def start_scanning(self, instance):
-        # Print debug statement
+        self.barcode_scanner = BarcodeScannerApp()
         print(f"Now scanning for items")
 
         # Close the current popup (if needed)
@@ -177,9 +177,11 @@ class InventoryApp(App):
         self.setup_scanner()
 
     def setup_scanner(self):
-        # This will be a placeholder method for now; you can use the barcode scanner library of your choice
-        # to handle the camera feed and extract the barcode data when it's scanned
-        pass
+        self.barcode_scanner.enable_scanning(self.on_barcode_scanned)
+
+    def on_barcode_scanned(self, barcode):
+        print(f"Scanned Barcode: {barcode}")
+        self.scanning_label.text = f"Scanned: {barcode}"
 
     def search_order(self, instance):
         # Logic to search for the order, whether from manual entry or scanned barcode

@@ -104,11 +104,12 @@ class BarcodeScannerApp(App):
                 {
             "order number": order_number,
             "line number": line_number,
-            "remaining barcode": remaining_barcode
+            "CID": remaining_barcode
             }
         }
 
         print(self.processed_barcode)
+        return self.processed_barcode
 
 
 if __name__ == '__main__':
