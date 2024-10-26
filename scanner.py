@@ -8,6 +8,11 @@ from pyzbar.pyzbar import decode
 import cv2
 
 class BarcodeScannerApp(App):
+
+    def __init__(self, on_scan_callback=None, **kwargs):
+        super().__init__(**kwargs)
+        self.on_scan_callback = on_scan_callback
+
     def build(self):
         layout = BoxLayout(orientation='vertical')
 
@@ -110,6 +115,14 @@ class BarcodeScannerApp(App):
 
         print(self.processed_barcode)
         return self.processed_barcode
+
+    def close_scanner(self):
+        # Stop the camera or scanning process here
+        if self.camera:  # Assuming camera object exists
+            self.camera.stop()
+
+        # Return to the main screen
+        self.manager.current = 'main'  # Assuming 'main' is the name of the main screen
 
 
 if __name__ == '__main__':

@@ -146,42 +146,39 @@ class InventoryApp(App):
         self.popup_stack.append(self.popup)
         self.popup.open()
 
-    def start_scanning(self, instance):
-        self.barcode_scanner = BarcodeScannerApp()
-        print(f"Now scanning for items")
-
-        # Close the current popup (if needed)
+    def start_scanning(self, instance=None):
+        # Close any open popups first
         if hasattr(self, 'popup') and self.popup:
             self.popup.dismiss()
 
-        # Start the camera to scan barcodes
-        self.camera_layout = BoxLayout(orientation='vertical')
+        # Create the barcode scanner app instance
+        self.barcode_scanner = BarcodeScannerApp()
 
-        # Create camera widget (adjust size as needed)
-        self.camera = Camera(play=True, resolution=(640, 480), size_hint=(1, 1))
-        self.camera_layout.add_widget(self.camera)
+        # Launch the barcode scanner app
+        self.barcode_scanner.run()
 
-        # Label to display scanning status
-        self.scanning_label = Label(text="Now scanning...", size_hint=(1, 0.2))
-        self.camera_layout.add_widget(self.scanning_label)
+        # Open a popup with a label to inform the user that scanning is in progress
+        layout = BoxLayout(orientation='vertical')
+        scanning_label = Label(text="Scanning for barcodes...", size_hint=(1, 0.8))
+        close_button = Button(text="Close", size_hint=(1, 0.2), on_press=self.close_all_popups)
 
-        # Close button for the camera feed
-        close_button = Button(text="Close", on_press=self.close_camera_popup, size_hint=(0.2, 0.2))
-        self.camera_layout.add_widget(close_button)
+        layout.add_widget(scanning_label)
+        layout.add_widget(close_button)
 
-        # Add the layout to the popup
-        self.camera_popup = Popup(title="Scanning for Order", content=self.camera_layout, size_hint=(1, 0.8))
-        self.camera_popup.open()
-
-        # Setup scanner functionality (if needed)
-        self.setup_scanner()
+        self.popup = Popup(title="Scanning...", content=layout, size_hint=(0.8, 0.5))
+        self.popup.open()
 
     def setup_scanner(self):
-        self.barcode_scanner.enable_scanning(self.on_barcode_scanned)
+        self.barcode_scanner = BarcodeScannerApp(on_scan_callback=self.on_barcode_scanned())
+        self.barcode_scanner.run()
 
-    def on_barcode_scanned(self, barcode):
-        print(f"Scanned Barcode: {barcode}")
-        self.scanning_label.text = f"Scanned: {barcode}"
+    def on_barcode_scanned(self, barcode_data):
+        # Update the scanning label in the popup
+        if self.scanning_label:
+            self.scanning_label.text = f"Scanned: {barcode_data}"
+
+        # You can also process the barcode further here, such as searching in your inventory
+        print(f"Scanned Barcode: {barcode_data}")
 
     def search_order(self, instance):
         # Logic to search for the order, whether from manual entry or scanned barcode
@@ -316,10 +313,12 @@ class InventoryApp(App):
             popup.dismiss()
         self.popup_stack.clear()
 
-    def close_camera_popup(self, instance):
-        # Close the camera popup
-        if hasattr(self, 'camera_popup') and self.camera_popup:
+    def close_camera_popup(self, instance=None):
+        # Close the barcode scanner popup
+        if self.camera_popup:
             self.camera_popup.dismiss()
+        # Optionally reset the scanner or return to a main page
+
 
 if __name__ == '__main__':
     InventoryApp().run()
